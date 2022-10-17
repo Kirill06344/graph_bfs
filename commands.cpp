@@ -22,7 +22,32 @@ istaev::AddVertex::AddVertex(std::istream &in, std::ostream &out):
 {}
 
 void istaev::AddVertex::operator()(istaev::Graph &graph) {
-
+  int v;
+  in_ >> v;
+  if (in_.peek() == '\n') {
+    graph.insertNode(v);
+    return;
+  }
+  std::list< int > nbrs;
+  std::string tmp;
+  in_ >> tmp;
+  while (tmp.length() != 0) {
+    int node;
+    try {
+      size_t inx = tmp.find(',');
+      node = (inx == std::string::npos) ? std::stoi(tmp) : std::stoi(tmp.substr(0, inx));
+      nbrs.push_back(node);
+      if (inx == std::string::npos) {
+        tmp.clear();
+      } else {
+        tmp.erase(0, inx + 1);
+      }
+    } catch (const std::exception& ex) {
+      invalidArguments(out_) << "\n";
+      return;
+    }
+  }
+  graph.insertNode(v, std::move(nbrs));
 }
 
 istaev::RemoveVertex::RemoveVertex(std::istream &in, std::ostream &out):

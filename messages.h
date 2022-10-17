@@ -5,5 +5,6 @@
 namespace istaev {
   std::ostream& printInvalidCommand(std::ostream& out);
   std::ostream& graphIsEmpty(std::ostream& out);
+  std::ostream& invalidArguments(std::ostream& out);
 }
 #endif
