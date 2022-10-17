@@ -9,19 +9,22 @@ namespace istaev {
   class Graph {
     public:
       bool isEmpty();
-      adjacencyList::iterator isNodeInGraph(int vertex);
+      bool isNodeInGraph(int vertex);
       bool isEdgeBetweenNodes(int v1, int v2);
       adjacencyList::iterator insertNode(int v);
       adjacencyList::iterator insertNode(int v, std::list< int >&& nodes);
-      void removeNode(int v);
+      void removeVertex(int v);
       void insertEdgeBetweenNodes(int v1, int v2);
       void printGraph(std::ostream& out);
-      void findShortPathsForVertex(int v);
+      std::map< int, int > findShortPathsForVertex(int v);
+      bool isTree();
+      int calculateDiameter();
     private:
       std::map<int, std::list< int >> vertexes;
       std::map< int, int > paths;
-      void preparePathsForBfs();
+      void clearPaths();
       void bfs(int s);
+      bool dfs(int s, int parent);
   };
 }
 #endif

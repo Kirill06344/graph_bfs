@@ -2,6 +2,19 @@
 #include <iostream>
 #include "messages.h"
 
+namespace {
+  bool correctInput(std::istream& in)
+  {
+    return !(!in && !in.eof());
+  }
+
+  void skip(std::istream& in) {
+    in.clear();
+    in.ignore();
+  }
+
+}
+
 istaev::PrintGraph::PrintGraph(std::istream &in, std::ostream &out):
   in_(in),
   out_(out)
@@ -24,6 +37,11 @@ istaev::AddVertex::AddVertex(std::istream &in, std::ostream &out):
 void istaev::AddVertex::operator()(istaev::Graph &graph) {
   int v;
   in_ >> v;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
   if (in_.peek() == '\n') {
     graph.insertNode(v);
     return;
@@ -56,7 +74,16 @@ istaev::RemoveVertex::RemoveVertex(std::istream &in, std::ostream &out):
 {}
 
 void istaev::RemoveVertex::operator()(istaev::Graph &graph) {
-
+  int v;
+  in_ >> v;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+  if (!graph.isEmpty() && graph.isNodeInGraph(v)) {
+    graph.removeVertex(v);
+  }
 }
 
 
@@ -66,7 +93,26 @@ istaev::InsertEdge::InsertEdge(std::istream &in, std::ostream &out):
 {}
 
 void istaev::InsertEdge::operator()(istaev::Graph &graph) {
+  int v1, v2;
+  in_ >> v1;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
 
+  if (in_.peek() == '\n') {
+    invalidArguments(out_) << "\n";
+    return;
+  }
+
+  in_ >> v2;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+  graph.insertEdgeBetweenNodes(v1, v2);
 }
 
 istaev::CheckEdge::CheckEdge(std::istream &in, std::ostream &out):
@@ -75,7 +121,33 @@ istaev::CheckEdge::CheckEdge(std::istream &in, std::ostream &out):
 {}
 
 void istaev::CheckEdge::operator()(istaev::Graph &graph) {
+  int v1, v2;
+  in_ >> v1;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
 
+  if (in_.peek() == '\n') {
+    invalidArguments(out_) << "\n";
+    return;
+  }
+
+  in_ >> v2;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+
+  if (!graph.isEmpty()) {
+    if (graph.isEdgeBetweenNodes(v1, v2)) {
+      istaev::edgeIsPresent(out_) << '\n';
+    } else {
+      istaev::edgeIsAbsent(out_) << '\n';
+    }
+  }
 }
 
 istaev::Bfs::Bfs(std::istream &in, std::ostream &out):
@@ -84,7 +156,21 @@ istaev::Bfs::Bfs(std::istream &in, std::ostream &out):
 {}
 
 void istaev::Bfs::operator()(istaev::Graph &graph) {
-
+  int v;
+  in_ >> v;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+  if (graph.isEmpty() || !graph.isNodeInGraph(v)) {
+    istaev::vertexIsAbsent(out_) << '\n';
+    return;
+  }
+  auto paths = graph.findShortPathsForVertex(v);
+  for (auto& it : paths) {
+    out_ << it.first << " - " << it.second << '\n';
+  }
 }
 
 istaev::CalcDiameter::CalcDiameter(std::istream &in, std::ostream &out):
@@ -93,5 +179,9 @@ istaev::CalcDiameter::CalcDiameter(std::istream &in, std::ostream &out):
 {}
 
 void istaev::CalcDiameter::operator()(istaev::Graph &graph) {
-
+  if (graph.isTree()) {
+    out_ << "Diameter of tree = " << graph.calculateDiameter() << '\n';
+  } else {
+    out_ << "Graph is not a tree!" << '\n';
+  }
 }

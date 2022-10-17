@@ -9,8 +9,8 @@ bool istaev::Graph::isEmpty() {
   return vertexes.empty();
 }
 
-istaev::adjacencyList::iterator istaev::Graph::isNodeInGraph(int vertex) {
-  return vertexes.find(vertex);
+bool istaev::Graph::isNodeInGraph(int vertex) {
+  return vertexes.find(vertex) != vertexes.end();
 }
 
 bool istaev::Graph::isEdgeBetweenNodes(int v1, int v2) {
@@ -31,7 +31,7 @@ istaev::adjacencyList::iterator istaev::Graph::insertNode(int v) {
   return insertNode(v, {});
 }
 
-void istaev::Graph::removeNode(int v) {
+void istaev::Graph::removeVertex(int v) {
   vertexes.erase(v);
  for (auto it = vertexes.begin(); it != vertexes.end(); ++it) {
    auto elem = std::find(it->second.begin(), it->second.end(), v);
@@ -59,7 +59,7 @@ void istaev::Graph::printGraph(std::ostream& out) {
 }
 
 void istaev::Graph::bfs(int s) {
-  preparePathsForBfs();
+  clearPaths();
   paths[s] = 0;
   std::queue< int > q;
   q.push(s);
@@ -75,19 +75,74 @@ void istaev::Graph::bfs(int s) {
   }
 }
 
-void istaev::Graph::preparePathsForBfs() {
+void istaev::Graph::clearPaths() {
+  if (isEmpty()) {
+    return;
+  }
   auto it = paths.begin();
-  while (it++ != paths.end()) {
+  while (it != paths.end()) {
     it->second = -1;
+    ++it;
   }
 }
 
-void istaev::Graph::findShortPathsForVertex(int v) {
+std::map< int, int > istaev::Graph::findShortPathsForVertex(int v) {
   bfs(v);
-  for (auto& el : paths) {
-    std::cout << el.first << " -> " << el.second << std::endl;
-  }
+  return paths;
 }
+
+bool istaev::Graph::dfs(int s, int parent) {
+  paths[s] = 1;
+  for(int v : vertexes[s]) {
+    if(paths[v] == -1) {
+      if(!dfs(v, s)) {
+        return false;
+      }
+    } else if(v != parent) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool istaev::Graph::isTree() {
+  clearPaths();
+  if(!isEmpty() && dfs(vertexes.begin()->first, -1)) {
+    for (auto& it : paths) {
+      if (it.second == -1) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+int istaev::Graph::calculateDiameter() {
+  if (isEmpty()) {
+    return 0;
+  }
+  int v = vertexes.begin()->first;
+  bfs(v);
+  int maxPath = 0;
+  for (auto& el : paths) {
+    if(el.second > maxPath) {
+      maxPath = el.second;
+      v = el.first;
+    }
+  }
+  bfs(v);
+  maxPath = 0;
+  for (auto& el : paths) {
+    if(el.second > maxPath) {
+      maxPath = el.second;
+      v = el.first;
+    }
+  }
+  return maxPath;
+}
+
 
 
 

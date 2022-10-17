@@ -24,8 +24,8 @@ int main(int argv, char** argc) {
       commands.at(command)(graph);
     } catch (const std::exception& ex) {
       istaev::printInvalidCommand(std::cout) << "\n";
-      std::cin.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
     }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
 }
