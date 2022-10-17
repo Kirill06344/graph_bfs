@@ -3,8 +3,7 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-
-using namespace std::placeholders;
+#include <queue>
 
 bool istaev::Graph::isEmpty() {
   return vertexes.empty();
@@ -24,6 +23,7 @@ std::map<int, std::list<int>>::iterator istaev::Graph::insertNode(int v, std::li
     insertEdgeBetweenNodes(v, it);
   }
   auto result = vertexes.insert(std::make_pair(v, std::move(nodes)));
+  paths.emplace(v, -1);
   return result.first;
 }
 
@@ -33,9 +33,12 @@ istaev::adjacencyList::iterator istaev::Graph::insertNode(int v) {
 
 void istaev::Graph::removeNode(int v) {
   vertexes.erase(v);
-  for (auto it: vertexes) {
-    std::remove(it.second.begin(), it.second.end(), v);
-  }
+ for (auto it = vertexes.begin(); it != vertexes.end(); ++it) {
+   auto elem = std::find(it->second.begin(), it->second.end(), v);
+   if (elem != it->second.end()) {
+     it->second.erase(elem);
+   }
+ }
 }
 
 void istaev::Graph::insertEdgeBetweenNodes(int v1, int v2) {
@@ -47,11 +50,42 @@ void istaev::Graph::insertEdgeBetweenNodes(int v1, int v2) {
   }
 }
 
-void istaev::Graph::printGraph() {
+void istaev::Graph::printGraph(std::ostream& out) {
   for (auto it : vertexes) {
-    std::cout << it.first << " -> ";
-    std::copy(it.second.begin(), it.second.end(), std::ostream_iterator< int >(std::cout, " "));
-    std::cout << std::endl;
+    out << it.first << " -> ";
+    std::copy(it.second.begin(), it.second.end(), std::ostream_iterator< int >(out, " "));
+    out << "\n";
+  }
+}
+
+void istaev::Graph::bfs(int s) {
+  preparePathsForBfs();
+  paths[s] = 0;
+  std::queue< int > q;
+  q.push(s);
+  while (!q.empty()) {
+    int v = q.front();
+    q.pop();
+    for (int to : vertexes[v]) {
+      if (paths[to] == -1) {
+        paths[to] = paths[v] + 1;
+        q.push(to);
+      }
+    }
+  }
+}
+
+void istaev::Graph::preparePathsForBfs() {
+  auto it = paths.begin();
+  while (it++ != paths.end()) {
+    it->second = -1;
+  }
+}
+
+void istaev::Graph::findShortPathsForVertex(int v) {
+  bfs(v);
+  for (auto& el : paths) {
+    std::cout << el.first << " -> " << el.second << std::endl;
   }
 }
 

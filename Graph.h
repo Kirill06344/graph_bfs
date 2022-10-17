@@ -2,6 +2,7 @@
 #define GRAPH_H
 #include <map>
 #include <list>
+#include <iosfwd>
 
 namespace istaev {
   using adjacencyList = std::map< int, std::list< int > >;
@@ -14,11 +15,13 @@ namespace istaev {
       adjacencyList::iterator insertNode(int v, std::list< int >&& nodes);
       void removeNode(int v);
       void insertEdgeBetweenNodes(int v1, int v2);
-      void printGraph();
-      void dfs();
-      void bfs();
+      void printGraph(std::ostream& out);
+      void findShortPathsForVertex(int v);
     private:
       std::map<int, std::list< int >> vertexes;
+      std::map< int, int > paths;
+      void preparePathsForBfs();
+      void bfs(int s);
   };
 }
 #endif
