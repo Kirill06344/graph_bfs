@@ -15,17 +15,60 @@ namespace {
 
 }
 
+istaev::Create::Create(std::istream &in, std::ostream &out):
+  in_(in),
+  out_(out)
+{}
+
+void istaev::Create::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
+  in_ >> name;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+  auto it = graphs.find(name);
+  if (it != graphs.end()) {
+    out_ << "Graph is already present!\n";
+    return;
+  } else {
+    istaev::Graph graph;
+    graphs.emplace(name, graph);
+  }
+}
+
 istaev::PrintGraph::PrintGraph(std::istream &in, std::ostream &out):
   in_(in),
   out_(out)
 {}
 
-void istaev::PrintGraph::operator()(istaev::Graph& graph) {
-  if (graph.isEmpty()) {
+void istaev::PrintGraph::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
+  in_ >> name;
+  if (!correctInput(in_)) {
+    invalidArguments(out_) << "\n";
+    skip(in_);
+    return;
+  }
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+  if (graph->second.isEmpty()) {
     istaev::graphIsEmpty(out_) << "\n";
     return;
   }
-  graph.printGraph(out_);
+  graph->second.printGraph(out_);
 }
 
 
@@ -34,16 +77,34 @@ istaev::AddVertex::AddVertex(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::AddVertex::operator()(istaev::Graph &graph) {
+void istaev::AddVertex::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
   int v;
+  in_ >> name;
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+
+  if (in_.peek() == '\n') {
+    out_ << "Not enough args!\n";
+    return;
+  }
+
   in_ >> v;
   if (!correctInput(in_)) {
     invalidArguments(out_) << "\n";
     skip(in_);
     return;
   }
+
   if (in_.peek() == '\n') {
-    graph.insertNode(v);
+    graph->second.insertNode(v);
     return;
   }
   std::list< int > nbrs;
@@ -65,7 +126,7 @@ void istaev::AddVertex::operator()(istaev::Graph &graph) {
       return;
     }
   }
-  graph.insertNode(v, std::move(nbrs));
+  graph->second.insertNode(v, std::move(nbrs));
 }
 
 istaev::RemoveVertex::RemoveVertex(std::istream &in, std::ostream &out):
@@ -73,16 +134,35 @@ istaev::RemoveVertex::RemoveVertex(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::RemoveVertex::operator()(istaev::Graph &graph) {
+void istaev::RemoveVertex::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
   int v;
+  in_ >> name;
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+
+  if (in_.peek() == '\n') {
+    out_ << "Not enough args!\n";
+    return;
+  }
+
   in_ >> v;
+
   if (!correctInput(in_)) {
     invalidArguments(out_) << "\n";
     skip(in_);
     return;
   }
-  if (!graph.isEmpty() && graph.isNodeInGraph(v)) {
-    graph.removeVertex(v);
+
+  if (!graph->second.isEmpty() && graph->second.isNodeInGraph(v)) {
+    graph->second.removeVertex(v);
   }
 }
 
@@ -92,8 +172,25 @@ istaev::InsertEdge::InsertEdge(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::InsertEdge::operator()(istaev::Graph &graph) {
+void istaev::InsertEdge::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
   int v1, v2;
+  in_ >> name;
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+
+  if (in_.peek() == '\n') {
+    out_ << "Not enough args!\n";
+    return;
+  }
+
   in_ >> v1;
   if (!correctInput(in_)) {
     invalidArguments(out_) << "\n";
@@ -112,7 +209,7 @@ void istaev::InsertEdge::operator()(istaev::Graph &graph) {
     skip(in_);
     return;
   }
-  graph.insertEdgeBetweenNodes(v1, v2);
+  graph->second.insertEdgeBetweenNodes(v1, v2);
 }
 
 istaev::CheckEdge::CheckEdge(std::istream &in, std::ostream &out):
@@ -120,14 +217,32 @@ istaev::CheckEdge::CheckEdge(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::CheckEdge::operator()(istaev::Graph &graph) {
+void istaev::CheckEdge::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
   int v1, v2;
+  in_ >> name;
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+
+  if (in_.peek() == '\n') {
+    out_ << "Not enough args!\n";
+    return;
+  }
+
   in_ >> v1;
   if (!correctInput(in_)) {
     invalidArguments(out_) << "\n";
     skip(in_);
     return;
   }
+
 
   if (in_.peek() == '\n') {
     invalidArguments(out_) << "\n";
@@ -141,8 +256,8 @@ void istaev::CheckEdge::operator()(istaev::Graph &graph) {
     return;
   }
 
-  if (!graph.isEmpty()) {
-    if (graph.isEdgeBetweenNodes(v1, v2)) {
+  if (!graph->second.isEmpty()) {
+    if (graph->second.isEdgeBetweenNodes(v1, v2)) {
       istaev::edgeIsPresent(out_) << '\n';
     } else {
       istaev::edgeIsAbsent(out_) << '\n';
@@ -155,19 +270,34 @@ istaev::Bfs::Bfs(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::Bfs::operator()(istaev::Graph &graph) {
+void istaev::Bfs::operator()(istaev::storage& graphs) {
+  if (in_.peek() == '\n') {
+    out_ << "You need to text name of your graph!\n";
+    return;
+  }
+  std::string name = "";
   int v;
+  in_ >> name;
+  if (in_.peek() == '\n') {
+    out_ << "Not enough args!\n";
+    return;
+  }
   in_ >> v;
   if (!correctInput(in_)) {
     invalidArguments(out_) << "\n";
     skip(in_);
     return;
   }
-  if (graph.isEmpty() || !graph.isNodeInGraph(v)) {
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+  if (graph->second.isEmpty() || !graph->second.isNodeInGraph(v)) {
     istaev::vertexIsAbsent(out_) << '\n';
     return;
   }
-  auto paths = graph.findShortPathsForVertex(v);
+  auto paths = graph->second.findShortPathsForVertex(v);
   for (auto& it : paths) {
     out_ << it.first << " - " << it.second << '\n';
   }
@@ -178,10 +308,19 @@ istaev::CalcDiameter::CalcDiameter(std::istream &in, std::ostream &out):
   out_(out)
 {}
 
-void istaev::CalcDiameter::operator()(istaev::Graph &graph) {
-  if (graph.isTree()) {
-    out_ << "Diameter of tree = " << graph.calculateDiameter() << '\n';
+void istaev::CalcDiameter::operator()(istaev::storage& graphs) {
+  std::string name = "";
+  in_ >> name;
+  auto graph = graphs.find(name);
+  if (graph == graphs.end()) {
+    out_ << "Graph with name: " << name << "is absent!\n";
+    return;
+  }
+  if (graph->second.isTree()) {
+    out_ << "Diameter of tree = " << graph->second.calculateDiameter() << '\n';
   } else {
     out_ << "Graph is not a tree!" << '\n';
   }
 }
+
+

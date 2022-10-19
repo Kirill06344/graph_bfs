@@ -142,10 +142,3 @@ int istaev::Graph::calculateDiameter() {
   }
   return maxPath;
 }
-
-
-
-
-
-
-

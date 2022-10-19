@@ -6,9 +6,10 @@
 #include "commands.h"
 
 int main(int argv, char** argc) {
-  istaev::Graph graph;
+  istaev::storage graphs;
 
-  std::map< std::string, std::function< void(istaev::Graph&)> > commands {
+  std::map< std::string, std::function< void(istaev::storage&)> > commands {
+    {"create", istaev::Create(std::cin, std::cout)},
     {"print", istaev::PrintGraph(std::cin, std::cout)},
     {"add_vertex", istaev::AddVertex(std::cin, std::cout)},
     {"remove_vertex", istaev::RemoveVertex(std::cin, std::cout)},
@@ -21,7 +22,7 @@ int main(int argv, char** argc) {
   std::string command = "";
   while (std::cin >> command) {
     try {
-      commands.at(command)(graph);
+      commands.at(command)(graphs);
     } catch (const std::exception& ex) {
       istaev::printInvalidCommand(std::cout) << "\n";
     }
